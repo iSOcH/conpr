@@ -32,9 +32,9 @@ public final class SemaphoreImpl implements Semaphore {
 				threads.addLast(Thread.currentThread());
 				try {
 					lock.unlock();
-					Thread thread = Thread.currentThread();
-					synchronized (thread) {
-						thread.wait();
+					Thread t = Thread.currentThread();
+					synchronized (t) {
+						t.wait();
 					}
 				} catch (InterruptedException e) { }
 				lock.lock();
