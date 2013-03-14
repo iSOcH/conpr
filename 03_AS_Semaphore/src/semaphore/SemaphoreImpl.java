@@ -7,8 +7,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public final class SemaphoreImpl implements Semaphore {
 	// volatile: http://www.javamex.com/tutorials/synchronization_volatile.shtml
 	// volatile bei uns aber nicht nötig, wegen happens-before und locks
-	private int value;
-	private LinkedList<Thread> threads;
+	private int value; // guardedBy("lock")
+	private LinkedList<Thread> threads; // guardedBy("lock")
+	
 	private Lock lock;
 
 	public SemaphoreImpl(int initial) {
