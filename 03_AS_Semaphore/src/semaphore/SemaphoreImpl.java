@@ -29,12 +29,15 @@ public final class SemaphoreImpl implements Semaphore {
 		try {
 			lock.lock();
 			while (value < 1) {
-				lock.lock();
 				threads.addLast(Thread.currentThread());
 				try {
 					lock.unlock();
-					Thread.currentThread().wait();
+					Thread thread = Thread.currentThread();
+					synchronized (thread) {
+						thread.wait();
+					}
 				} catch (InterruptedException e) { }
+				lock.lock();
 			}
 			--value;
 		} finally {
