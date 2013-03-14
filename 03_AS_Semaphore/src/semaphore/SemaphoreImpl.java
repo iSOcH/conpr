@@ -6,8 +6,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public final class SemaphoreImpl implements Semaphore {
 	// volatile: http://www.javamex.com/tutorials/synchronization_volatile.shtml
-	// volatile bei uns aber nicht nötig, wegen happens-before und locks
-	private int value; // guardedBy("lock")
+	// volatile wird eig. nur für available() benötigt?
+	private volatile int value; // guardedBy("lock")
 	private LinkedList<Thread> threads; // guardedBy("lock")
 	
 	private Lock lock;
@@ -15,7 +15,7 @@ public final class SemaphoreImpl implements Semaphore {
 	public SemaphoreImpl(int initial) {
 		if (initial < 0) throw new IllegalArgumentException();
 		value = initial;
-		threads = new LinkedList<>();
+		threads = new LinkedList<Thread>();
 		
 		// faires lock _nicht_ erwünscht
 		lock = new ReentrantLock();
@@ -30,9 +30,13 @@ public final class SemaphoreImpl implements Semaphore {
 	public void acquire() {
 		try {
 			lock.lock();
-			while (value < 1) {
-				Thread t = Thread.currentThread();
-				threads.addLast(t);
+			
+			// wir tragen uns immer in die Liste ein, um sicherzustellen dass nicht
+			// nur value > 0 ist, sondern wir auch tatsächlich an der Reihe sind
+			Thread t = Thread.currentThread();
+			threads.addLast(t);
+			
+			while (!(value > 0 && t == threads.peekFirst())) {
 				try {
 					lock.unlock();
 					synchronized (t) {
@@ -42,6 +46,10 @@ public final class SemaphoreImpl implements Semaphore {
 				lock.lock();
 			}
 			--value;
+			if (t != threads.removeFirst()) {
+				throw new IllegalStateException("Thread " + t.getName() +
+						" left acquire() but wasnt first in queue");
+			}
 		} finally {
 			lock.unlock();
 		}
@@ -53,7 +61,7 @@ public final class SemaphoreImpl implements Semaphore {
 			lock.lock();
 			++value;
 			if (!threads.isEmpty()) {
-				Thread next = threads.pollFirst();
+				Thread next = threads.peekFirst();
 				synchronized (next) {
 					next.notify();
 				}
