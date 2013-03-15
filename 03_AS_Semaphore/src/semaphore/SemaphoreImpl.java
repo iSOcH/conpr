@@ -36,7 +36,7 @@ public final class SemaphoreImpl implements Semaphore {
 			Thread t = Thread.currentThread();
 			threads.addLast(t);
 			
-			while (!(value > 0 && t == threads.peekFirst())) {
+			while (!(value > 0 && t.equals(threads.peekFirst()))) {
 				try {
 					lock.unlock();
 					synchronized (t) {
@@ -46,7 +46,7 @@ public final class SemaphoreImpl implements Semaphore {
 				lock.lock();
 			}
 			--value;
-			if (t != threads.removeFirst()) {
+			if (!t.equals(threads.removeFirst())) {
 				throw new IllegalStateException("Thread " + t.getName() +
 						" left acquire() but wasnt first in queue");
 			}
