@@ -17,10 +17,10 @@ public class PetersonMutex implements Mutex {
 	private final Map<Thread, Integer> idToIndex = new HashMap<Thread, Integer>();
 
 	/** Entry enter[i] indicates that thread i wants to get the lock. */
-	private boolean[] enter = { false, false };
+	private volatile boolean[] enter = { false, false };
 	
 	/** Defines which thread proceeds if both threads acquire the lock. */
-	private int turn = 0;
+	private volatile int turn = 0;
 
 	/** Register the two threads for simplicity. */
 	public PetersonMutex(Thread t0, Thread t1) {
