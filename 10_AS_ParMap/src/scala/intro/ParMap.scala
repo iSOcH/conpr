@@ -80,14 +80,14 @@ object ParMap extends App {
   def reducePar[A](l:List[A], r:(A,A)=>A):A = {
     def inner[A](l:List[A], r:(A,A)=>A):List[A] = {
       val ex = Executors.newFixedThreadPool(8)
-      def inner2[A](l:List[A], r:(A,A)=>A, ex:ExecutorService):List[Future[A]] = {
+      def inner2[A](l:List[A], r:(A,A)=>A):List[Future[A]] = {
         l match {
           case Nil => Nil
-          case x1 :: x2 :: xs => ex.submit(new Callable[A]() { def call:A = r(x1,x2) }) :: inner2(xs, r, ex)
+          case x1 :: x2 :: xs => ex.submit(new Callable[A]() { def call:A = r(x1,x2) }) :: inner2(xs, r)
           case x1 :: xs => List(ex.submit(new Callable[A]() { def call:A = x1}))
         }
       }
-      val res = inner2(l, r, ex)
+      val res = inner2(l, r)
       ex.shutdown()
       mapSeq(res, (fut:Future[A]) => fut.get())
     }
@@ -98,13 +98,13 @@ object ParMap extends App {
 //    innerR.head
     
     // ... with doReduce
-    def doReduce(l:List[A], r:(A,A)=>A):List[A] = {
+    def doReduce(l:List[A]):List[A] = {
       l match {
-        case xs if xs.length > 1 => doReduce(inner(xs, r), r)
+        case xs if xs.length > 1 => doReduce(inner(xs, r))
         case xs => xs
       }
     }
-    doReduce(l, r).head
+    doReduce(l).head
   }
   
   val list = List.range(1, 2000, 1)
