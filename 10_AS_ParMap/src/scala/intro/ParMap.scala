@@ -92,10 +92,19 @@ object ParMap extends App {
       mapSeq(res, (fut:Future[A]) => fut.get())
     }
     
-    // how to solve this without var?
-    var innerR = inner(l,r)
-    while (innerR.length != 1) {innerR = inner(innerR,r)}
-    innerR.head
+//    // how to solve this without var?
+//    var innerR = inner(l,r)
+//    while (innerR.length != 1) {innerR = inner(innerR,r)}
+//    innerR.head
+    
+    // ... with doReduce
+    def doReduce(l:List[A], r:(A,A)=>A):List[A] = {
+      l match {
+        case xs if xs.length > 1 => doReduce(inner(xs, r), r)
+        case xs => xs
+      }
+    }
+    doReduce(l, r).head
   }
   
   val list = List.range(1, 2000, 1)
