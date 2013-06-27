@@ -45,7 +45,7 @@ public class ConCrawler {
             "</html>\n";
     
     /** The webcrawler instance. */
-    private static Crawler crawler = new SeqCrawler();
+    private static Crawler crawler = new ParCrawler();
 
     /** Starts the webserver. */
     public static void main(String[] args) throws IOException {
@@ -126,7 +126,7 @@ public class ConCrawler {
         }
         resultList += "</ol>\n";
         
-        String processingTime = "Processing time: " + duration + "ms";
+        String processingTime = "Processing time: " + duration + "ms, processed by Thread:" + Thread.currentThread().getName();
 
         String body = HTML_TEMPLATE.replace(RESULT_PLACEHOLDER, resultTitle + resultList + processingTime);
         return HEADER_OK + body;
