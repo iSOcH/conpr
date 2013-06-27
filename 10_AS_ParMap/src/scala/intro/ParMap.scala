@@ -84,7 +84,7 @@ object ParMap extends App {
         l match {
           case Nil => Nil
           case x1 :: x2 :: xs => ex.submit(new Callable[A]() { def call:A = r(x1,x2) }) :: inner2(xs, r)
-          case x1 :: xs => List(ex.submit(new Callable[A]() { def call:A = x1}))
+          case List(x) => List(ex.submit(new Callable[A]() { def call:A = x}))
         }
       }
       val res = inner2(l, r)
